@@ -1,0 +1,635 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>T-A-P Protocol: Overdrive</title>
+<style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(145deg, #1c0000, #330d00, #1a0000);
+      font-family: 'Courier New', monospace;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      top: 0;
+      left: 0;
+      background: radial-gradient(circle, rgba(255,0,0,0.1) 0%, transparent 70%);
+      animation: pulse-glow 5s infinite alternate;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes pulse-glow {
+      0% { opacity: 0.05; }
+      100% { opacity: 0.15; }
+    }
+
+    .matrix, canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: auto;
+      padding: 80px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 3.2rem;
+      color: #ff3c00;
+      text-shadow: 0 0 25px #ff3c00, 0 0 50px #ff0000;
+      animation: flicker 2s infinite alternate;
+    }
+
+    @keyframes flicker {
+      from { opacity: 0.8; }
+      to { opacity: 1; transform: scale(1.01); }
+    }
+
+    .subline {
+      font-size: 1.2rem;
+      text-align: center;
+      color: #ffcc00;
+      text-shadow: 0 0 6px #ffcc00, 0 0 12px #ff5722;
+      margin-top: 20px;
+      max-width: 800px;
+      animation: slidein 3s ease-out;
+    }
+
+    @keyframes slidein {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .countdown-box {
+      margin-top: 30px;
+      font-size: 1.5rem;
+      color: #fff700;
+      text-shadow: 0 0 10px #ff0;
+    }
+
+    .snake-roadmap {
+      margin-top: 60px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 90px;
+      position: relative;
+    }
+
+    .step {
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 5px solid #ff3c00;
+      padding: 20px;
+      font-size: 1.1rem;
+      box-shadow: 0 0 25px rgba(255, 69, 0, 0.3);
+      backdrop-filter: blur(2px);
+      border-radius: 10px;
+      transition: transform 0.4s, box-shadow 0.4s;
+    }
+
+    .step:nth-child(odd) {
+      align-self: flex-start;
+    }
+
+    .step:nth-child(even) {
+      align-self: flex-end;
+      border-left: none;
+      border-right: 5px solid #ff3c00;
+    }
+
+    .step:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px #ff3c00;
+    }
+
+    .line {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: repeating-linear-gradient(to bottom, #ff4500, #ff4500 10px, transparent 10px, transparent 20px);
+      transform: translateX(-50%);
+      z-index: -1;
+    }
+
+    footer {
+      margin-top: 80px;
+      font-size: 1rem;
+      text-align: center;
+      color: #ccc;
+    }
+
+    footer a {
+      color: #ff4500;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-shadow: 0 0 8px #ff5722;
+    }
+  </style>
+<style>
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, p, div, button {
+  max-width: 100%;
+  word-wrap: break-word;
+  box-sizing: border-box;
+}
+
+button {
+  font-size: 1rem;
+  padding: 0.5em 1em;
+  max-width: 90vw;
+  white-space: normal;
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.5rem; }
+  h3, p, div { font-size: 1rem; }
+}
+</style><style>
+/* Reset and base styles */
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Courier New', monospace;
+}
+
+/* Section spacing and padding */
+section {
+  margin: 2rem 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Button responsiveness */
+button {
+  font-size: 1rem;
+  padding: 0.8rem 1.5rem;
+  margin: 0.5rem;
+  max-width: 90vw;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+/* Text containers */
+h1, h2, h3, p, div {
+  max-width: 95vw;
+  text-align: center;
+  margin: 0.5rem auto;
+}
+
+/* Specific layout fix for TAP REPORT */
+.tap-report {
+  background-color: rgba(0,0,0,0.75);
+  padding: 1rem;
+  margin: 1rem auto;
+  border-radius: 10px;
+  color: #00ff00;
+  max-width: 90vw;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+
+/* Positioning improvements */
+.behavior-rank, .glitch-detected {
+  margin: 1rem auto;
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: rgba(255,255,255,0.1);
+  color: #ff4081;
+  max-width: 85vw;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+/* Media queries for small screens */
+@media (max-width: 600px) {
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.3rem; }
+  h3 { font-size: 1.1rem; }
+  button { font-size: 0.9rem; }
+  .tap-report, .behavior-rank, .glitch-detected {
+    font-size: 0.9rem;
+  }
+}
+</style><style>
+.step {
+  margin-bottom: 50px !important;
+}
+
+/* Reposition floating buttons */
+button {
+  z-index: 999 !important;
+}
+
+/* Adjust JS UI element spacing (bottom buttons) */
+.fixed-bottom-left, .fixed-bottom-right {
+  margin-bottom: 80px !important;
+}
+
+/* Prevent overlap between TAP AI injected elements */
+#liveBox, #glowTrail, .tap-sim, .tap-blackout {
+  margin: 10px !important;
+}
+
+/* Make footer more responsive */
+footer {
+  padding-bottom: 80px;
+}
+</style><style>
+/* Ensure non-overlapping fixed UI on small screens */
+@media (max-width: 768px) {
+  .glitch-portal {
+    bottom: 20% !important;
+    left: 10% !important;
+    transform: scale(0.9);
+  }
+
+  .tap-blackout, .tap-sim {
+    position: fixed !important;
+    bottom: 10px !important;
+    padding: 10px !important;
+    font-size: 0.9rem !important;
+  }
+
+  .tap-sim {
+    left: 10px !important;
+  }
+
+  .tap-blackout {
+    right: 10px !important;
+  }
+
+  .behavior-rank {
+    top: 10px !important;
+    left: 10px !important;
+    font-size: 0.85rem;
+    padding: 8px !important;
+  }
+
+  .tap-report {
+    top: 70px !important;
+    right: 10px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .step {
+    margin-bottom: 70px !important;
+    font-size: 1rem !important;
+  }
+
+  .countdown-box {
+    margin-top: 20px;
+    font-size: 1.2rem;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .subline {
+    font-size: 1rem !important;
+  }
+}
+</style><style>
+@media (max-width: 768px) {
+  .glitch-portal {
+    position: fixed !important;
+    bottom: 25% !important;
+    left: 5% !important;
+    transform: scale(0.9);
+    z-index: 998 !important;
+  }
+
+  .tap-blackout, .tap-sim {
+    position: fixed !important;
+    bottom: 10px !important;
+    font-size: 0.9rem !important;
+    padding: 8px 14px !important;
+    z-index: 998 !important;
+  }
+
+  .tap-sim {
+    left: 10px !important;
+  }
+
+  .tap-blackout {
+    right: 10px !important;
+  }
+
+  .tap-behavior-rank {
+    position: fixed !important;
+    top: 10px !important;
+    left: 10px !important;
+    font-size: 0.85rem !important;
+    padding: 8px !important;
+    background: rgba(0,0,0,0.8);
+    z-index: 998 !important;
+  }
+
+  .tap-report-box {
+    position: fixed !important;
+    top: 60px !important;
+    right: 10px !important;
+    font-size: 0.75rem !important;
+    padding: 10px !important;
+    background: rgba(0,0,0,0.8);
+    z-index: 998 !important;
+  }
+
+  .step {
+    margin-bottom: 80px !important;
+  }
+
+  footer {
+    margin-bottom: 100px !important;
+  }
+}
+</style><style>
+.glitch-portal-inside {
+  position: relative;
+  z-index: 2;
+}
+</style><style>
+.parallax-bg {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: url('https://www.transparenttextures.com/patterns/cubes.png');
+  background-size: cover;
+  opacity: 0.04;
+  animation: drift 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes drift {
+  from { transform: translate(0,0); }
+  to { transform: translate(-300px, -200px); }
+}
+</style><style>
+.scroll-anim {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 0.8s ease-out;
+}
+.scroll-anim.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+h1:hover, .step:hover {
+  text-shadow: 0 0 8px #ff3c00, 0 0 12px #ff3c00;
+  animation: pulse-electric 0.3s ease-in-out;
+}
+@keyframes pulse-electric {
+  0% { transform: scale(1.01); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+body.mirror {
+  filter: invert(1) hue-rotate(180deg);
+}
+.dna-orbit {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: orbit 10s linear infinite;
+  font-size: 1.5rem;
+  opacity: 0.3;
+  z-index: 1;
+}
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(80px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(80px) rotate(-360deg); }
+}
+.social-bar {
+  margin-top: 60px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 0.95rem;
+}
+.social-bar a {
+  color: #00ffaa;
+  text-decoration: none;
+  margin: 0 5px;
+}
+.social-bar a:hover {
+  text-shadow: 0 0 6px #00ffaa, 0 0 12px #00ffaa;
+}
+</style><style>
+.tap-controls {
+  position: fixed;
+  bottom: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 999;
+}
+.btn-launch, .btn-blackout {
+  background: black;
+  color: #0f0;
+  border: 1px solid #0f0;
+  padding: 10px 16px;
+  font-family: monospace;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.btn-blackout {
+  background: red;
+  color: white;
+  border-color: white;
+}
+.btn-launch:hover, .btn-blackout:hover {
+  box-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+}
+</style></head>
+<body><div class="parallax-bg"></div><audio autoplay="" hidden="" loop=""><source src="https://files.catbox.moe/9m3no7.mp3" type="audio/mpeg"/></audio>
+<audio autoplay="" hidden="" loop="">
+<source src="https://files.catbox.moe/wqkk2m.mp3" type="audio/mpeg"/>
+</audio>
+<div class="matrix">
+<canvas id="matrix"></canvas>
+</div>
+<div class="content"><div class="dna-orbit">🧬</div>
+<h1>🔥 T-A-P PROTOCOL // SYSTEM OVERRIDE</h1>
+<div class="subline">
+      The world is not ready for what’s coming.<br/>
+      The banks will shift. The corporations will react.<br/>
+      And this… is just the beginning.
+    </div>
+<div class="countdown-box" id="countdown">Calculating ignition...</div>
+<div class="snake-roadmap">
+<div class="line"></div>
+<div class="step">🧬 Phase 1 – Signal Awakening</div>
+<div class="step">🛰️ Phase 2 – Data Reflection</div>
+<div class="step">🧠 Phase 3 – Synaptic Fusion</div>
+<div class="step">💣 Phase 4 – Chain Reaction</div>
+<div class="step">🚀 Phase 5 – Gateway Override</div>
+</div>
+<footer>
+      Contact the Core: <a href="mailto:info.tap.com@gmail.com">info.tap.com@gmail.com</a><br/>
+      This site is alive. And evolving...
+    
+    <div style="margin-top: 40px; font-size: 1.1rem; color: #ffcc00; text-shadow: 0 0 10px #ffcc00, 0 0 20px #ff3c00;
+    animation: flickerSig 3s infinite alternate; transition: all 0.3s ease;">
+      ✍️ Signed by <strong>Tristan-Al-Khalili</strong> 🌟⚡
+    </div>
+<style>
+      @keyframes flickerSig {
+        0% { opacity: 0.8; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.05); text-shadow: 0 0 12px #ffcc00, 0 0 24px #ff4500; }
+        100% { opacity: 0.9; transform: scale(1); }
+      }
+    </style>
+<div style="margin-top: 60px; text-align: center; font-size: 0.95rem; color: #0ff;">
+      🛰️ Intelligence Feed Activated | 🧪 TAP LAB Ready | 🧬 DNA NODE LIVE | 🎥 Intro Running | 🧠 Neural Link Online | 🛸 Uplink Radar On | 📄 AI Report Streaming...
+    </div>
+</footer>
+<div class="glitch-portal-inside">🕳️ GLITCH PORTAL DETECTED</div></div>
+<script>
+    const countdown = document.getElementById("countdown");
+    const targetDate = new Date("2027-01-01T00:00:00Z");
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        window.location.href = "https://example.com/secret-launch";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      countdown.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s remaining…`;
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
+
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+
+    const letters = '1010TAPPROTOCOL⚡☣️🔥'.split('');
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+    const drops = Array.from({ length: columns }).fill(1);
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0f0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    setInterval(drawMatrix, 33);
+  </script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const glitch = document.querySelector(".glitch-portal-inside");
+  glitch.style.background = "#00ffff";
+  glitch.style.color = "#000";
+  glitch.style.padding = "10px 20px";
+  glitch.style.borderRadius = "10px";
+  glitch.style.margin = "40px auto";
+  glitch.style.textAlign = "center";
+  glitch.style.maxWidth = "300px";
+  glitch.style.fontFamily = "monospace";
+  glitch.style.fontSize = "1.1rem";
+  glitch.style.boxShadow = "0 0 12px #0ff, 0 0 22px #0ff";
+});
+</script>
+<div class="social-bar">
+<p>Follow us for more:</p>
+<a href="https://www.facebook.com/share/1LAVFxtHtG/" target="_blank">Facebook</a> |
+  <a href="https://www.instagram.com/tap.void?igsh=MWgydWp6YTFvZTZ1eA==" target="_blank">Instagram</a> |
+  <a href="https://x.com/mhamadwaleed31?t=aiQG4096OaTnbMo64H8Rnw&amp;s=09" target="_blank">X</a> |
+  <a href="https://www.tiktok.com/@t_a_p_protocol?_t=ZN-8xrSuIrInig&amp;_r=1" target="_blank">TikTok</a>
+</div>
+<script>
+const mirrorBtn = document.createElement("button");
+mirrorBtn.innerText = "🪞 MIRROR MODE";
+mirrorBtn.style = "position:fixed;top:10px;right:10px;z-index:999;background:#000;color:#0ff;border:1px solid #0ff;padding:10px;font-family:monospace;";
+document.body.appendChild(mirrorBtn);
+mirrorBtn.onclick = () => document.body.classList.toggle("mirror");
+</script><script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+});
+document.querySelectorAll('.step, .subline, .countdown-box').forEach(el => {
+  el.classList.add('scroll-anim');
+  observer.observe(el);
+});
+</script>
+<div class="tap-controls">
+<button class="btn-launch">🚀 LAUNCH TAP SIGNAL</button>
+<button class="btn-blackout">🚨 BLACKOUT</button>
+</div>
+<script>
+document.querySelector(".btn-blackout").onclick = () => {
+  document.body.innerHTML = "<div style='height:100vh;background:black;color:#ff0000;display:flex;justify-content:center;align-items:center;font-size:2rem;font-family:monospace;'>You have reached a forbidden sequence.</div>";
+};
+document.querySelector(".btn-launch").onclick = () => {
+  alert("🚀 TAP SIGNAL LAUNCHED! Initializing...");
+};
+</script></body>
+</html>
